@@ -143,6 +143,7 @@ class NearbyMessages: RCTEventEmitter {
 					guard let params = params else { return }
 					params.discoveryMediums = self.discoveryMediums ?? defaultDiscoveryMediums
 					params.discoveryMode = self.discoveryModes ?? defaultDiscoveryModes
+			                params.allowInBackground = true
 				  })
 				})
 			resolve(nil)
