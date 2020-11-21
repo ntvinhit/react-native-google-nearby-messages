@@ -120,33 +120,34 @@ class NearbyMessages: RCTEventEmitter {
 			if (self.messageManager == nil) {
 				throw GoogleNearbyMessagesError.runtimeError(message: "Google Nearby Messages is not connected! Call connect() before any other calls.")
 			}
-			self.currentSubscription = self.messageManager!.subscription(
-				messageFoundHandler: { (message: GNSMessage?) in
-					guard let data = message?.content else {
-						self.sendEvent(withName: EventType.MESSAGE_NO_DATA_ERROR.rawValue, body: [ "message": "Message does not have any Data!" ] )
-						return
-					}
-					print("GNM_BLE: Found message!")
-					self.sendEvent(withName: EventType.MESSAGE_FOUND.rawValue, body: [ "message": String(data: data, encoding: .utf8) ]);
-				},
-				messageLostHandler: { (message: GNSMessage?) in
-					guard let data = message?.content else {
-						self.sendEvent(withName: EventType.MESSAGE_NO_DATA_ERROR.rawValue, body: [ "message": "Message does not have any Data!" ] )
-						return
-					}
-					print("GNM_BLE: Lost message!")
-					self.sendEvent(withName: EventType.MESSAGE_LOST.rawValue, body: [ "message": String(data: data, encoding: .utf8) ]);
-				},
-				paramsBlock: { (params: GNSSubscriptionParams?) in
-				  guard let params = params else { return }
-				  params.strategy = GNSStrategy(paramsBlock: { (params: GNSStrategyParams?) in
-					guard let params = params else { return }
-					params.discoveryMediums = self.discoveryMediums ?? defaultDiscoveryMediums
-					params.discoveryMode = self.discoveryModes ?? defaultDiscoveryModes
-			                params.allowInBackground = true
-				  })
-				})
-			resolve(nil)
+            DispatchQueue.main.async {
+                self.currentSubscription = self.messageManager!.subscription(
+                    messageFoundHandler: { (message: GNSMessage?) in
+                        guard let data = message?.content else {
+                            self.sendEvent(withName: EventType.MESSAGE_NO_DATA_ERROR.rawValue, body: [ "message": "Message does not have any Data!" ] )
+                            return
+                        }
+                        print("GNM_BLE: Found message!")
+                        self.sendEvent(withName: EventType.MESSAGE_FOUND.rawValue, body: [ "message": String(data: data, encoding: .utf8) ]);
+                    },
+                    messageLostHandler: { (message: GNSMessage?) in
+                        guard let data = message?.content else {
+                            self.sendEvent(withName: EventType.MESSAGE_NO_DATA_ERROR.rawValue, body: [ "message": "Message does not have any Data!" ] )
+                            return
+                        }
+                        print("GNM_BLE: Lost message!")
+                        self.sendEvent(withName: EventType.MESSAGE_LOST.rawValue, body: [ "message": String(data: data, encoding: .utf8) ]);
+                    },
+                    paramsBlock: { (params: GNSSubscriptionParams?) in
+                      guard let params = params else { return }
+                      params.strategy = GNSStrategy(paramsBlock: { (params: GNSStrategyParams?) in
+                        guard let params = params else { return }
+                        params.discoveryMediums = .BLE
+                        params.allowInBackground = true
+                      })
+                    })
+            }
+            resolve(nil)
 		} catch {
 			reject("GOOGLE_NEARBY_MESSAGES_ERROR_SUBSCRIBE", error.localizedDescription, error)
 		}
